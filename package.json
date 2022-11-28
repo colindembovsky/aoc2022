@@ -1,5 +1,5 @@
 {
-  "name": "aoc2021",
+  "name": "aoc2022",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/colindembovsky/aoc2021.git"
+    "url": "git+https://github.com/colindembovsky/aoc2022.git"
   },
   "author": "Colin Dembovsky",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/colindembovsky/aoc2021/issues"
+    "url": "https://github.com/colindembovsky/aoc2022/issues"
   },
-  "homepage": "https://github.com/colindembovsky/aoc2021#readme",
+  "homepage": "https://github.com/colindembovsky/aoc2022#readme",
   "dependencies": {
     "fs": "^0.0.1-security"
   },
