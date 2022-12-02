@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-const ROOT_DIR="dayxx";
+const ROOT_DIR="day08";
 
 // read in a file and print it out to the console
 function readFile(fileName: string): string {
