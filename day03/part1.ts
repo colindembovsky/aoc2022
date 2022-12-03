@@ -17,11 +17,7 @@ let sacks: Sack[] = [];
 contents.split("\n").forEach(line => {
     let sack = new Sack(line);
     sacks.push(sack);
-    //let score = sack.getScore();
-    //console.log(`Sack: ${line} has common letter ${sack.getCommonLetters()} with score ${score}`);
+    // let score = getScore(sack.getCommonLetter());
+    // console.log(`Sack: ${line} has common letter ${sack.getCommonLetter()} with score ${score}`);
 });
 console.log(`Final score: ${sacks.reduce((a, b) => a + getScore(b.getCommonLetter()), 0)}`);
-
-//console.log("==== PART 2 ====");
-//contents = readFile(`${ROOT_DIR}/input.txt`);
-
