@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import Sack from "./sack";
+import { Sack, getScore } from "./sack";
 
 const ROOT_DIR="day03";
 
@@ -20,7 +20,7 @@ contents.split("\n").forEach(line => {
     //let score = sack.getScore();
     //console.log(`Sack: ${line} has common letter ${sack.getCommonLetters()} with score ${score}`);
 });
-console.log(`Final score: ${sacks.reduce((a, b) => a + b.getScore(), 0)}`);
+console.log(`Final score: ${sacks.reduce((a, b) => a + getScore(b.getCommonLetter()), 0)}`);
 
 //console.log("==== PART 2 ====");
 //contents = readFile(`${ROOT_DIR}/input.txt`);

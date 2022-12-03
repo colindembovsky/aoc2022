@@ -9,23 +9,23 @@ class Sack {
     }
 
     // function to calculate the common letters between the compartments
-    public getCommonLetters(): string {
+    public getCommonLetter(): string {
         // convert each compartment to set
         let set1 = new Set(this.compartment1.split(""));
         let set2 = new Set(this.compartment2.split(""));
         // get the intersection of the two sets
         let intersection = new Set([...set1].filter(x => set2.has(x)));
         // convert the intersection back to a string
-        return Array.from(intersection).join("");
-    }
-
-    public getScore(): number {
-        // get ascii value of first letter
-        let commonVal = this.getCommonLetters()[0].charCodeAt(0);
-        let offset = commonVal >= 96 ? 96 : 64 - 26;
-        return commonVal - offset;
+        return Array.from(intersection).join("")[0];
     }
 }
 
-// export sack class
-export default Sack;
+function getScore(letter: string): number {
+    // get ascii value of first letter
+    let commonVal = letter.charCodeAt(0);
+    let offset = commonVal >= 96 ? 96 : 64 - 26;
+    return commonVal - offset;
+}
+
+// export Sack and getScore
+export { Sack, getScore };
