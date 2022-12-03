@@ -1,5 +1,5 @@
-/* import * as fs from "fs";
-import Sack from "./sack";
+import * as fs from "fs";
+import { getScore } from "./sack";
 
 const ROOT_DIR="day03";
 
@@ -20,28 +20,22 @@ class Group {
 
     public getCommonLetter(): string {
         // find the common letter in all 3 strings in the array
-        let intersection = new Set([...this.sack1].filter(x => this.sack2.has(x) || this.sack3.has(x)));
+        let intersection = new Set([...this.sack1].filter(x => this.sack2.has(x) && this.sack3.has(x)));
         return Array.from(intersection).join("")[0];
     }
 }
 
-
-
 let contents = readFile(`${ROOT_DIR}/input.txt`);
-
-let sacks: Sack[] = [];
-let groups = contents.split("\n");
-
-for (let i = 0; i < groups.length / 3; i=3) {
-
-}
-
-.forEach(line => {
-    let sack = new Sack(line);
-    sacks.push(sack);
-});
-console.log(`Final score: ${sacks.reduce((a, b) => a + b.getScore(), 0)}`);
-
 console.log("==== PART 2 ====");
 
-*/
+let groupLines = contents.split("\n");
+let groups: Group[] = [];
+for (let i = 0; i < groupLines.length; i+=3) {
+    let group = new Group(groupLines[i], groupLines[i+1], groupLines[i+2]);
+    groups.push(group);
+    // let cLetter = group.getCommonLetter();
+    // let score = getScore(cLetter);
+    // console.log(`Group: has common letter ${cLetter} with score ${score}`);
+}
+
+console.log(`Final score: ${groups.reduce((a, b) => a + getScore(b.getCommonLetter()), 0)}`);
