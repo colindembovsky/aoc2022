@@ -5,8 +5,12 @@ class Column {
         return this.stack[this.stack.length - 1];
     }
 
-    public pop(num: number): string[] {
+    public popSingle(num: number): string[] {
         return this.stack.splice(this.stack.length - num, num).reverse();
+    }
+
+    public popMulti(num: number): string[] {
+        return this.stack.splice(this.stack.length - num, num);
     }
 
     public push(items: string[]): void {
@@ -60,7 +64,16 @@ function parseInstructions(lines: string[]): Instruction[] {
 
 function followInstructionsPart1(columns: Column[], instructions: Instruction[]): string {
     instructions.forEach(i => {
-        let items = columns[i.fromCol].pop(i.moveNum);
+        let items = columns[i.fromCol].popSingle(i.moveNum);
+        columns[i.toCol].push(items);
+    });
+
+    return columns.reduce((acc, col) => acc += col.getTop(), "");
+}
+
+function followInstructionsPart2(columns: Column[], instructions: Instruction[]): string {
+    instructions.forEach(i => {
+        let items = columns[i.fromCol].popMulti(i.moveNum);
         columns[i.toCol].push(items);
     });
 
@@ -68,9 +81,8 @@ function followInstructionsPart1(columns: Column[], instructions: Instruction[])
 }
 
 export {
-    Column,
-    Instruction,
     parseColumns,
     parseInstructions,
-    followInstructionsPart1
+    followInstructionsPart1,
+    followInstructionsPart2
 }
