@@ -9,7 +9,7 @@ function readFile(fileName: string): string {
 }
 
 console.log("==== PART 1 ====");
-//let contents = readFile(`${ROOT_DIR}/test-input.txt`);
+//let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 let contents = readFile(`${ROOT_DIR}/input.txt`);
 
 // create an empty array of Sacks

@@ -8,7 +8,7 @@ function readFile(fileName: string): string {
 }
 
 console.log("==== PART 1 ====");
-let contents = readFile(`${ROOT_DIR}/test-input.txt`);
+let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 
 
 console.log("==== PART 2 ====");

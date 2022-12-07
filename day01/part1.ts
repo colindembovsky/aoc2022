@@ -7,7 +7,7 @@ function readFile(fileName: string): string {
     return fs.readFileSync(fileName, "utf8");
 }
 
-//let contents = readFile(`${ROOT_DIR}/test-input.txt`);
+//let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 let contents = readFile(`${ROOT_DIR}/input.txt`);
 //console.log(contents);
 
