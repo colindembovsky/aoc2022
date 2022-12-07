@@ -11,7 +11,6 @@ let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 
 
 
-
 console.log("==== PART 1 ====");
 
 
