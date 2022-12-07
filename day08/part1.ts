@@ -9,8 +9,9 @@ function readFile(fileName: string): string {
 
 let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 
-console.log("==== PART 1 ====");
 
+
+console.log("==== PART 1 ====");
 
 
 console.log("==== PART 2 ====");
