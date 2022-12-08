@@ -50,9 +50,7 @@ class Directory {
         }
         for (let child of this.dirs) {
             let subDirs = child.getAllDirsBySize();
-            subDirs.forEach(d => {
-                dirs.add(d)
-            });
+            subDirs.forEach(d => dirs.add(d));
             size += child.getSize();
         }
         
