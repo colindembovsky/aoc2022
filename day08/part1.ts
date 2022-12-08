@@ -25,7 +25,7 @@ class Forest {
 
     getTreesLeftOf(row: number, col: number) {
         let treeRow = this.grid[row];
-        return treeRow.slice(0, col);
+        return treeRow.slice(0, col).reverse();
     }
 
     getTreesAbove(row: number, col: number) {
@@ -33,7 +33,7 @@ class Forest {
         for (let i = 0; i < row; i++) {
             trees.push(this.grid[i][col]);
         }
-        return trees;
+        return trees.reverse();
     }
 
     getTreesBelow(row: number, col: number) {
@@ -45,9 +45,7 @@ class Forest {
     }
 
     isTreeVisible(tree: number, looking: number[]) {
-        // get the max of the looking array
         let max = Math.max(...looking);
-        // if the tree is greater than the max, it's visible
         return tree > max;
     }
 
@@ -67,7 +65,31 @@ class Forest {
         return visibleCount;
     }
 
-    
+    getVisibleTreeCount(tree: number, looking: number[]) {
+        let visibleTrees = looking.findIndex(t => t >= tree);
+        return visibleTrees === -1 ? looking.length : visibleTrees + 1;
+    }
+
+    getScenicScoreForTree(row: number, col: number) {
+        let tree = this.grid[row][col];
+        return this.getVisibleTreeCount(tree, this.getTreesRightOf(row, col)) *
+            this.getVisibleTreeCount(tree, this.getTreesLeftOf(row, col)) *
+            this.getVisibleTreeCount(tree, this.getTreesAbove(row, col)) *
+            this.getVisibleTreeCount(tree, this.getTreesBelow(row, col));
+    }
+
+    getScenicScore() {
+        let maxScenic = 0;
+        for (let row = 1; row < this.grid.length - 1; row++) {
+            for (let col = 1; col < this.grid[row].length - 1; col++) {
+                let score = this.getScenicScoreForTree(row, col);
+                if (score > maxScenic) {
+                    maxScenic = score;
+                }
+            }
+        }
+        return maxScenic;
+    }
 }
 
 console.log("==== PART 1 ====");
@@ -76,5 +98,4 @@ let forest = new Forest(contents);
 console.log(forest.getVisibleTrees());
 
 console.log("==== PART 2 ====");
-
-
+console.log(forest.getScenicScore());
