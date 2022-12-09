@@ -7,70 +7,81 @@ function readFile(fileName: string): string {
     return fs.readFileSync(fileName, "utf8");
 }
 
-class Pos {
-    constructor(public x: number, public y: number) {}
+class Knot {
+    public follower: Knot | undefined;
+    constructor(public x: number, public y: number, public id: number) {}
 
-    equals(other: Pos) {
+    equals(other: Knot) {
         return this.x === other.x && this.y === other.y;
     }
 }
 
 class Grid {
     public positionsTailVisited = new Set<string>();
-    public headPos = new Pos(0, 0);
-    public tailPos = new Pos(0, 0);
+    public headKnot: Knot;
     
-    constructor(public instructions: string[]) {
+    constructor(public instructions: string[], knotCount: number) {
+        this.headKnot = new Knot(0, 0, 1);
+        let curKnot = this.headKnot;
+        for (let i = 1; i < knotCount; i++) {
+            let knot = new Knot(0, 0, i + 1);
+            curKnot.follower = knot;
+            curKnot = knot;
+        }
     }
 
     doMoves() {
         for (let line of this.instructions) {
-            this.moveHead(line);
+            this.moveKnot(this.headKnot, line);
         }
         return this.positionsTailVisited.size;
     }
 
-    moveHead(line: string) {
+    moveKnot(knot: Knot, line: string) {
         let [dir, distStr] = line.split(" ");
         let dist = parseInt(distStr);
         for (let i = 0; i < dist; i++) {
             switch (dir) {
                 case "U":
-                    this.headPos.y--;
+                    knot.y--;
                     break;
                 case "D":
-                    this.headPos.y++;
+                    knot.y++;
                     break;
                 case "L":
-                    this.headPos.x--;
+                    knot.x--;
                     break;
                 case "R":
-                    this.headPos.x++;
+                    knot.x++;
                     break;
             }
-            this.moveTailTowardsHead();
+            this.pullFollower(knot.follower!, knot.x, knot.y);
         }
     }
     
-    moveTailTowardsHead() {
+    pullFollower(knot: Knot, x: number, y: number) {
         // work out the distance in every direction
-        let xDist = this.headPos.x - this.tailPos.x;
-        let yDist = this.headPos.y - this.tailPos.y;
+        let xDist = x - knot.x;
+        let yDist = y - knot.y;
 
         if (!(Math.abs(xDist) < 2 && Math.abs(yDist) < 2)) {
             if (xDist > 0) {
-                this.tailPos.x++;
+                knot.x++;
             } else if (xDist < 0) {
-                this.tailPos.x--;
+                knot.x--;
             }
             if (yDist > 0) {
-                this.tailPos.y++;
+                knot.y++;
             } else if (yDist < 0) {
-                this.tailPos.y--;
+                knot.y--;
             }
         }
 
-        this.positionsTailVisited.add(`${this.tailPos.x},${this.tailPos.y}`);
+        if (knot.follower) {
+            this.pullFollower(knot.follower, knot.x, knot.y);
+        } else {
+            this.positionsTailVisited.add(`${knot.x},${knot.y}`);
+        }
     }
 }
 
@@ -78,7 +89,7 @@ let contents = readFile(`${ROOT_DIR}/input.txt`);
 let instructions = contents.split("\n");
 
 console.log("==== PART 1 ====");
-let grid = new Grid(instructions);
+let grid = new Grid(instructions, 2);
 console.log(grid.doMoves());
 
 //console.log("==== PART 2 ====");
