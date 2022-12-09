@@ -60,7 +60,6 @@ class Grid {
     }
     
     pullFollower(knot: Knot, x: number, y: number) {
-        // work out the distance in every direction
         let xDist = x - knot.x;
         let yDist = y - knot.y;
 
@@ -92,6 +91,6 @@ console.log("==== PART 1 ====");
 let grid = new Grid(instructions, 2);
 console.log(grid.doMoves());
 
-//console.log("==== PART 2 ====");
-//contents = readFile(`${ROOT_DIR}/input.txt`);
-
+console.log("==== PART 2 ====");
+let grid2 = new Grid(instructions, 10);
+console.log(grid2.doMoves());
