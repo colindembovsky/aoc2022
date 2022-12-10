@@ -33,16 +33,16 @@ initialOperations.forEach(op => {
 });
 
 console.log("==== PART 1 ====");
-operations.forEach((op, i) => {
-    console.log(`Cycle ${i + 1}: ${op.name} ${op.val} (register X: ${op.X})`);
-});
-console.log("----");
+// operations.forEach((op, i) => {
+//     console.log(`Cycle ${i + 1}: ${op.name} ${op.val} (register X: ${op.X})`);
+// });
+// console.log("----");
 
 let cycles = [20, 60, 100, 140, 180, 220];
 let total = 0;
 cycles.forEach(cycle => {
     let op = operations[cycle - 2];
-    console.log(`Cycle ${cycle}: ${op.name} ${op.val} (register X: ${op.X})`);
+    //console.log(`Cycle ${cycle}: ${op.name} ${op.val} (register X: ${op.X})`);
     total += op.X * cycle;
 });
 console.log(`Total: ${total}`);
