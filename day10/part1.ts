@@ -11,7 +11,7 @@ class Op {
     constructor(public name: string, public val: number, public X: number) {}
     getChar(pos: number) {
         let rowPos = pos % 40;
-        return this.X - 1 <= rowPos && rowPos <= this.X + 1 ? "#" : ".";
+        return this.X - 1 <= rowPos && rowPos <= this.X + 1 ? '🟩' : '⬛';
     }
 }
 
@@ -49,11 +49,12 @@ console.log(`Total: ${total}`);
 
 console.log("==== PART 2 ====");
 
-let screen = "";
 operations.unshift(new Op("===", 0, 0));
+let line = "";
 for (let i = 0; i < operations.length - 1; i++) {
-    screen += operations[i].getChar(i);
+    line += operations[i].getChar(i);
+    if (i % 40 === 39) {
+        console.log(line);
+        line = "";
+    }
 }
-// split screen into lines of length 40
-let lines = screen.match(/.{1,40}/g);
-lines!.forEach(line => console.log(line));
