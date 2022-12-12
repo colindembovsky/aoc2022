@@ -1,19 +1,13 @@
-import * as fs from "fs";
-
-const ROOT_DIR="day11";
-
-// read in a file and print it out to the console
-function readFile(fileName: string): string {
-    return fs.readFileSync(fileName, "utf8");
-}
-
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
-
-
+import { testMonkeys, realMonkeys } from "./Monkey";
 
 console.log("==== PART 1 ====");
+let monkeys = realMonkeys;
 
-
-console.log("==== PART 2 ====");
-contents = readFile(`${ROOT_DIR}/input.txt`);
-
+for (let i = 0; i < 20; i++) {
+    monkeys.forEach(monkey => {
+        monkey.playRound(true);
+    });
+}
+monkeys.sort((a, b) => b.inspectCount - a.inspectCount);
+// get top 2 items
+console.log(`Top 2 monkeys: ${monkeys[0].name} (${monkeys[0].inspectCount}) and ${monkeys[1].name} (${monkeys[1].inspectCount}): total ${monkeys[0].inspectCount * monkeys[1].inspectCount}`);
