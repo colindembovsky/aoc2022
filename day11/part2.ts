@@ -1,11 +1,11 @@
 import { testMonkeys, realMonkeys } from "./Monkey";
 
 console.log("==== PART 2 ====");
-let monkeys = testMonkeys;
+let monkeys = realMonkeys;
 
-for (let i = 0; i < 20; i++) {
+for (let i = 0; i < 10000; i++) {
     monkeys.forEach(monkey => {
-        monkey.playRound();
+        monkey.playRound(1);
     });
 }
 monkeys.sort((a, b) => b.inspectCount - a.inspectCount);
