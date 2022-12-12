@@ -5,8 +5,12 @@ let monkeys = realMonkeys;
 
 for (let i = 0; i < 20; i++) {
     monkeys.forEach(monkey => {
-        monkey.playRound(true);
+        monkey.playRound();
     });
+    monkeys.forEach(monkey => {
+        console.log(`${monkey.name} (${monkey.inspectCount}): ${monkey.items.join(", ")}`);
+    });
+    console.log("====");
 }
 monkeys.sort((a, b) => b.inspectCount - a.inspectCount);
 // get top 2 items

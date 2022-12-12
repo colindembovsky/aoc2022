@@ -3,15 +3,21 @@ export class Monkey {
     public falseMonkey: Monkey | undefined = undefined;
     public inspectCount = 0;
 
-    constructor(public name: string, public items: number[], private op: (x: number) => number, private test: (x: number) => boolean) {
+    constructor(
+        public name: string, 
+        public items: number[], 
+        private op: (x: number) => number, 
+        private testDiv: number, 
+        private worryManager: number = 3,
+        private maxDivisor: number = Number.MAX_SAFE_INTEGER) {
     }
 
-    playRound(part1: boolean) {
+    playRound() {
         while(this.items.length > 0) {
             this.inspectCount++;
-            let item = this.items.shift()!;
-            let worry = part1 ? Math.floor(this.op(item) / 3) : this.op(item);
-            if (this.test(worry)) {
+            let worry = Math.floor(this.op(this.items.shift()!) / this.worryManager);
+            worry %= this.maxDivisor;
+            if (worry % this.testDiv === 0) {
                 this.trueMonkey!.items.push(worry);
             } else {
                 this.falseMonkey!.items.push(worry);
@@ -21,10 +27,10 @@ export class Monkey {
 }
 
 // part 1
-let testMonkey0 = new Monkey("monkey 0", [79, 98],          (x: number) => x * 19,  (x: number) => x % 23 === 0);
-let testMonkey1 = new Monkey("monkey 1", [54, 65, 75, 74],  (x: number) => x + 6,   (x: number) => x % 19 === 0);
-let testMonkey2 = new Monkey("monkey 2", [79, 60, 97],      (x: number) => x * x,   (x: number) => x % 13 === 0);
-let testMonkey3 = new Monkey("monkey 3", [74],              (x: number) => x + 3,   (x: number) => x % 17 === 0);
+let testMonkey0 = new Monkey("monkey 0", [79, 98],          (x: number) => x * 19,  23);
+let testMonkey1 = new Monkey("monkey 1", [54, 65, 75, 74],  (x: number) => x + 6,   19);
+let testMonkey2 = new Monkey("monkey 2", [79, 60, 97],      (x: number) => x * x,   13);
+let testMonkey3 = new Monkey("monkey 3", [74],              (x: number) => x + 3,   17);
 
 testMonkey0.trueMonkey  = testMonkey2;
 testMonkey0.falseMonkey = testMonkey3;
@@ -41,14 +47,15 @@ testMonkey3.falseMonkey = testMonkey1;
 let testMonkeys = [testMonkey0, testMonkey1, testMonkey2, testMonkey3];
 
 // part 2
-let realMonkey0 = new Monkey("monkey 0", [52, 60, 85, 69, 75, 75],            (x: number) => x * 17,  (x: number) => x % 13 === 0);
-let realMonkey1 = new Monkey("monkey 1", [96, 82, 61, 99, 82, 84, 85],        (x: number) => x + 8,   (x: number) => x % 7  === 0);
-let realMonkey2 = new Monkey("monkey 2", [95, 79],                            (x: number) => x + 6,   (x: number) => x % 19 === 0);
-let realMonkey3 = new Monkey("monkey 3", [88, 50, 82, 65, 77],                (x: number) => x * 19,  (x: number) => x % 2  === 0);
-let realMonkey4 = new Monkey("monkey 4", [66, 90, 59, 90, 87, 63, 53, 88],    (x: number) => x + 7,   (x: number) => x % 5  === 0);
-let realMonkey5 = new Monkey("monkey 5", [92, 75, 62],                        (x: number) => x * x,   (x: number) => x % 3  === 0);
-let realMonkey6 = new Monkey("monkey 6", [94, 86, 76, 67],                    (x: number) => x + 1,   (x: number) => x % 11 === 0);
-let realMonkey7 = new Monkey("monkey 7", [57],                                (x: number) => x + 2,   (x: number) => x % 17 === 0);
+let maxDivisor = 13 * 7 * 19 * 2 * 5 * 3 * 11 * 17;
+let realMonkey0 = new Monkey("monkey 0", [52, 60, 85, 69, 75, 75],            (x: number) => x * 17,  13, 1, maxDivisor);
+let realMonkey1 = new Monkey("monkey 1", [96, 82, 61, 99, 82, 84, 85],        (x: number) => x + 8,   7 , 1, maxDivisor);
+let realMonkey2 = new Monkey("monkey 2", [95, 79],                            (x: number) => x + 6,   19, 1, maxDivisor);
+let realMonkey3 = new Monkey("monkey 3", [88, 50, 82, 65, 77],                (x: number) => x * 19,  2 , 1, maxDivisor);
+let realMonkey4 = new Monkey("monkey 4", [66, 90, 59, 90, 87, 63, 53, 88],    (x: number) => x + 7,   5 , 1, maxDivisor);
+let realMonkey5 = new Monkey("monkey 5", [92, 75, 62],                        (x: number) => x * x,   3 , 1, maxDivisor);
+let realMonkey6 = new Monkey("monkey 6", [94, 86, 76, 67],                    (x: number) => x + 1,   11, 1, maxDivisor);
+let realMonkey7 = new Monkey("monkey 7", [57],                                (x: number) => x + 2,   17, 1, maxDivisor);
 
 realMonkey0.trueMonkey  = realMonkey6;
 realMonkey0.falseMonkey = realMonkey7;
