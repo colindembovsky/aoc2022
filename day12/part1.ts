@@ -12,8 +12,8 @@ class Grid {
     public points: Point[][];
     public length: number = -1;
     public width: number = -1;
-    public distanceMap: Map<string, number> = new Map<string, number>();
-
+    public end: Point;
+    
     constructor(public map: string[]) {
         this.points = [];
         for (let row = 0; row < map.length; row++) {
@@ -24,6 +24,7 @@ class Grid {
         }
         this.length = this.points.length;
         this.width = this.points[0].length;
+        this.end = this.getEnd();
     }
 
     getPoint(row: number, col: number): Point {
@@ -34,15 +35,15 @@ class Grid {
     }
 
     getPointWithValue(val: string) {
-        let startCol = 0;
-        let startRow = 0
-        for (; startRow < this.length; startRow++) {
-            startCol = this.map[startRow].indexOf(val);
-            if (startCol >= 0) {
-               break;
+        for (let startRow = 0; startRow < this.length; startRow++) {
+            for(let startCol = 0; startCol < this.width; startCol++) {
+                let p = this.getPoint(startRow, startCol);
+                if (p.height === val) {
+                    return p;
+                }
             }
         }
-        return this.getPoint(startRow, startCol);
+        throw new Error(`No point with value ${val}`);
     }
 
     getStart() {
@@ -56,12 +57,13 @@ class Grid {
     traverse() {
         let start = this.getStart();
         let queue: Point[] = [start];
+        let distanceMap = new Map<string, number>();
         let visited: Set<string> = new Set<string>();
         let distance = 0;
         while (queue.length > 0) {
             let nextQueue: Point[] = [];
             for (let point of queue) {
-                this.distanceMap.set(point.index, distance);
+                distanceMap.set(point.index, distance);
                 if (visited.has(point.index)) continue;
                 visited.add(point.index);
 
@@ -76,11 +78,29 @@ class Grid {
             }
             queue = nextQueue;
             distance++;
-            console.log(`Distance: ${distance}, Queue: ${queue.length}`);
+            //console.log(`Distance: ${distance}, Queue: ${queue.length}`);
         }
 
-        let end = this.getEnd();
-        return this.distanceMap.get(end.index);
+        return distanceMap.get(this.end.index);
+    }
+
+    getAllStarts() {
+        let points: Point[] = [];
+        for (let row = 0; row < this.length; row++) {
+            for (let col = 0; col < this.width; col++) {
+                let point = this.getPoint(row, col);
+                if (point.height === "a") {
+                    points.push(point);
+                }
+            }
+        }
+        points.unshift(this.getStart());
+        return points;
+    }
+
+    swapStart(p: Point) {
+        this.getStart().height = "a";
+        this.points[p.row][p.col].height = "S";
     }
 }
 
@@ -92,8 +112,8 @@ class Point {
 
     moveTo(row: number, col: number): Point | undefined {
         let p = this.grid.getPoint(row, col);
-        return p.height === "E" && (this.height === "z" || this.height === "y") || 
-            this.height === "S" ||
+        return (p.height === "E" && (this.height === "y" || this.height === "z")) || 
+            (this.height === "S" && (p.height === "a" || p.height === "b")) ||
             p.height.charCodeAt(0) - this.height.charCodeAt(0) <= 1 ? p : undefined;
     }
     
@@ -130,9 +150,16 @@ let contents = readFile(`${ROOT_DIR}/input.txt`);
 let grid = new Grid(contents.split("\n"));
 
 console.log("==== PART 1 ====");
-console.log(`Min distance to end is ${grid.traverse()} steps`);
-
+console.log(`Min steps to end is ${grid.traverse()} steps`);
 
 console.log("==== PART 2 ====");
-//contents = readFile(`${ROOT_DIR}/input.txt`);
-
+let startPoints = grid.getAllStarts();
+let minDistance = Number.MAX_SAFE_INTEGER;
+for (let p of startPoints) {
+    grid.swapStart(p);
+    let distance = grid.traverse();
+    if (distance && distance < minDistance) {
+        minDistance = distance!;
+    }
+}
+console.log(`Min steps from all starts is ${minDistance} steps`);
