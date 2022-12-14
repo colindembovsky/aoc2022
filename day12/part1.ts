@@ -61,10 +61,9 @@ class Grid {
         while (queue.length > 0) {
             let nextQueue: Point[] = [];
             for (let point of queue) {
+                this.distanceMap.set(point.index, distance);
                 if (visited.has(point.index)) continue;
                 visited.add(point.index);
-                let curDistance = this.distanceMap.get(point.index) ?? Infinity;
-                this.distanceMap.set(point.index, Math.min(distance, curDistance));
 
                 let up = point.up();
                 if (up) nextQueue.push(up);
@@ -77,6 +76,7 @@ class Grid {
             }
             queue = nextQueue;
             distance++;
+            console.log(`Distance: ${distance}, Queue: ${queue.length}`);
         }
 
         let end = this.getEnd();
@@ -94,7 +94,7 @@ class Point {
         let p = this.grid.getPoint(row, col);
         return p.height === "E" && (this.height === "z" || this.height === "y") || 
             this.height === "S" ||
-            Math.abs(p.height.charCodeAt(0) - this.height.charCodeAt(0)) <= 1 ? p : undefined;
+            p.height.charCodeAt(0) - this.height.charCodeAt(0) <= 1 ? p : undefined;
     }
     
     up(): Point | undefined {
@@ -126,7 +126,7 @@ class Point {
     }
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 let grid = new Grid(contents.split("\n"));
 
 console.log("==== PART 1 ====");
