@@ -137,6 +137,7 @@ while (!finished) {
 console.log(`Grain Count: ${grainCount}`);
 
 console.log("==== PART 2 ====");
+console.log("Be patient, this takes a while...");
 let xSorted = lines.sort((a, b) => a.start.x - b.start.x);
 let floorLine = new Line(new Point(xSorted[0].start.x - 10000, highestY + 2), new Point(xSorted[lines.length - 1].start.x + 10000, highestY + 2));
 lines.push(floorLine);
