@@ -54,33 +54,31 @@ class Sensor {
         return points;
     }
 
-    pointsWithinManhattanDistanceOnLine(lineY: number): Point[] {
-        const points: Point[] = [];
+    addPointsWithinManhattanDistanceOnLine(lineY: number, set: Set<string>) {
         const startX = this.location.x - this.manhattanToClosestBeacon;
         const endX = this.location.x + this.manhattanToClosestBeacon;
         for (let x = startX; x <= endX; x++) {
             const point = new Point(x, lineY);
             if (point.manhattanDistance(this.location) <= this.manhattanToClosestBeacon) {
-                points.push(point);
+                set.add(point.index);
             }
         }
-        return points;
     }
 }
 
-//let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
-//let lineY = 10;
+let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let lineY = 10;
 
-let contents = readFile(`${ROOT_DIR}/input.txt`);
-let lineY = 2000000;
-console.log("be patient - this takes a while...");
+// let contents = readFile(`${ROOT_DIR}/input.txt`);
+// let lineY = 2000000;
+// console.log("be patient - this takes a while...");
 
 let sensors: Sensor[] = contents.split("\n").map(line => new Sensor(line));
 
 console.log("==== PART 1 ====");
 let manhattanPointsSet = new Set<string>();
 sensors.forEach(sensor => {
-    sensor.pointsWithinManhattanDistanceOnLine(lineY).forEach(point => manhattanPointsSet.add(point.index));
+    sensor.addPointsWithinManhattanDistanceOnLine(lineY, manhattanPointsSet);
 });
 let beacons = new Set<string>();
 sensors.forEach(sensor => beacons.add(sensor.closestBeacon.index));
