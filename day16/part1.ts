@@ -44,11 +44,13 @@ class Volcano {
         return this.tunnels.find(tunnel => tunnel.name === name)!;
     }
 
-    calculateMaxFlowFromHereAndNow(current: Tunnel, openValves: string[], time: number) {
-        if (time === 0 || openValves.length === this.totalOpenableValves) return 0;
+    calculateMaxFlowFromHereAndNow(current: Tunnel, openValves: string[], time: number, elephantMustGo: boolean = false): number {
+        if (time === 0) {
+            return elephantMustGo ? this.calculateMaxFlowFromHereAndNow(this.getTunnel("AA"), openValves, 26, false) : 0;
+        }
         this.count++;
 
-        let key = `${current.name}${time}${openValves.join("")}`;
+        let key = `${current.name}${time}${openValves.join("")}${elephantMustGo ? "Y" : "N"}`;
         if (this.solvedTunnels.has(key)) {
             return this.solvedTunnels.get(key)!;
         }
@@ -58,16 +60,26 @@ class Volcano {
         if (!openValves.includes(current.name) && current.flowRate > 0) {
             openValves.push(current.name);
             openValves.sort();
-            totalFlowFromHereAndNow = ((time - 1) * current.flowRate) + this.calculateMaxFlowFromHereAndNow(current, openValves, time - 1);
+            totalFlowFromHereAndNow = ((time - 1) * current.flowRate) + this.calculateMaxFlowFromHereAndNow(current, openValves, time - 1, elephantMustGo);
         } 
         // move to next tunnel
         for (let tunnel of current.getTunnelsFromHere()) {
-            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, [...openValves], time - 1);
+            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, [...openValves], time - 1, elephantMustGo);
+            totalFlowFromHereAndNow = Math.max(totalFlowFromHereAndNow, nextFlow);
+        }
+        // move to next valve
+        for (let tunnel of current.getTunnelsFromHere()) {
+            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, [...openValves], time - 1, elephantMustGo);
             totalFlowFromHereAndNow = Math.max(totalFlowFromHereAndNow, nextFlow);
         }
         
         this.solvedTunnels.set(key, totalFlowFromHereAndNow);
         return totalFlowFromHereAndNow;
+    }
+
+    reset() {
+        this.solvedTunnels.clear();
+        this.count = 0;
     }
 }
 
@@ -76,3 +88,8 @@ console.log("==== PART 1 ====");
 let volcano = new Volcano(contents.split("\n"));
 let maxPressure = volcano.calculateMaxFlowFromHereAndNow(volcano.getTunnel("AA"), [], 30);
 console.log(`Max pressure: ${maxPressure} [Iterations: ${volcano.count}]`);
+
+console.log("==== PART 2 ====");
+volcano.reset();
+maxPressure = volcano.calculateMaxFlowFromHereAndNow(volcano.getTunnel("AA"), [], 26, true);
+console.log(`Max pressure with elephant: ${maxPressure} [Iterations: ${volcano.count}]`);
