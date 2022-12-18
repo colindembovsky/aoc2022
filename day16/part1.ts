@@ -50,11 +50,11 @@ class Volcano {
 
         let key = `${current.name}${time}${openValves.join("")}`;
         if (this.solvedTunnels.has(key)) {
-            //return this.solvedTunnels.get(key)!;
+            return this.solvedTunnels.get(key)!;
         }
 
         let totalFlowFromHereAndNow = 0;
-        // open the current valve if it's not open already
+        // open the current valve if it's not open already and has flow
         if (!openValves.includes(current.name) && current.flowRate > 0) {
             openValves.push(current.name);
             openValves.sort();
@@ -62,23 +62,17 @@ class Volcano {
         } 
         // move to next tunnel
         for (let tunnel of current.getTunnelsFromHere()) {
-            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, openValves, time - 1);
+            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, [...openValves], time - 1);
             totalFlowFromHereAndNow = Math.max(totalFlowFromHereAndNow, nextFlow);
         }
         
         this.solvedTunnels.set(key, totalFlowFromHereAndNow);
-        console.log(`${key} = ${totalFlowFromHereAndNow}`);
         return totalFlowFromHereAndNow;
     }
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 console.log("==== PART 1 ====");
 let volcano = new Volcano(contents.split("\n"));
 let maxPressure = volcano.calculateMaxFlowFromHereAndNow(volcano.getTunnel("AA"), [], 30);
-console.log(`Max pressure: ${maxPressure}`);
-console.log(`Count: ${volcano.count}`);
-
-//console.log("==== PART 2 ====");
-//contents = readFile(`${ROOT_DIR}/input.txt`);
-
+console.log(`Max pressure: ${maxPressure} [Iterations: ${volcano.count}]`);
