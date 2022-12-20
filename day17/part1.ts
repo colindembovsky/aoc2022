@@ -38,7 +38,8 @@ class Rock {
     offset = -1;
 
     constructor(public shapeIndex: number) {
-        this.shape = shapes[shapeIndex];
+        // make a deep copy of shapes[shapeIndex]
+        this.shape = shapes[shapeIndex].map(row => row.slice());
     }
 
     move(direction: string) {
@@ -80,7 +81,8 @@ class Chamber {
         this.rockCount = 0;
         while(this.rockCount < rocks) {
             this.startRock(this.rockCount);
-            this.print();
+            //this.print();
+            console.log(this.rockCount);
         }
     }
 
@@ -92,7 +94,6 @@ class Chamber {
         for (let i = 0; i < 3; i++) {
             this.chamber.unshift([0, 0, 0, 0, 0, 0, 0]);
         }
-        this.print();
 
         // move rock down
         do {
@@ -115,28 +116,29 @@ class Chamber {
         for (let i = 0; i < rock.shape.length; i++) {
             let rockRow = rock.shape[i];
             let chamberRow = [0, 0, 0, 0, 0, 0, 0];
-            if (rock.offset + i >= this.chamber.length) { 
-                chamberRow = this.chamber[rock.offset + i];
+            if (rock.offset - rock.shape.length + i + 1 >= 0) { 
+                chamberRow = this.chamber[rock.offset - rock.shape.length + i + 1];
             }
 
             let rockLeft = rockRow.indexOf(1);
             let rockRight = rockRow.lastIndexOf(1);
 
-            let wallLeft = chamberRow.indexOf(1);
-            let wallRight = chamberRow.lastIndexOf(1);
-            if (wallLeft === -1) { wallLeft = 0; }
-            if (wallRight === -1) { wallRight = 6; }
-    
             // check walls
-            if (direction === "<" && rockLeft <= wallLeft) { return false; }
-            if (direction === ">" && rockRight >= wallRight) { return false; }
+            if (direction === "<") {
+                if (rockLeft === 0) return false;
+                if (chamberRow[rockLeft - 1]) return false;
+            }
+            if (direction === ">") {
+                if (rockRight === 6) return false;
+                if (chamberRow[rockRight + 1]) return false;
+            } 
         }
         return true;
     }
 
     rockCanFall(rock: Rock) {
         for (let i = 0; i < rock.shape.length; i++) {
-            let rockRow = rock.shape[i];
+            let rockRow = rock.shape[rock.shape.length - i - 1];
             let chamberRow = [0, 0, 0, 0, 0, 0, 0];
             if (rock.offset - i >= 0) { 
                 chamberRow = this.chamber[rock.offset - i];
@@ -166,7 +168,10 @@ class Chamber {
     }
 
     mergeRow(rockRow: number[], offset: number) {
-        if (this.chamber.length - offset < 0) { this.chamber.unshift(rockRow) };
+        while (offset < 0) { 
+            this.chamber.unshift(rockRow) 
+            offset++;
+        };
         for (let i = 0; i < rockRow.length; i++) {
             this.chamber[offset][i] ||= rockRow[i];
         }
@@ -181,10 +186,11 @@ class Chamber {
     }
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 
 console.log("==== PART 1 ====");
 let chamber = new Chamber(contents);
-chamber.rockFall(2);
+chamber.rockFall(2022);
+console.log(`Rock height: ${chamber.chamber.length - 1}`);
 
 //console.log("==== PART 2 ====");
