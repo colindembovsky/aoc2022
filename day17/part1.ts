@@ -33,32 +33,18 @@ let shapes = [
     ]
 ];
 
-let startRight = [5, 4, 4, 2, 3];
-
 class Rock {
-    left: number = 2
-    right: number = startRight[this.shapeIndex];
     shape: number[][];
     offset = -1;
 
-    constructor(public shapeIndex: number, initialMoves: string) {
+    constructor(public shapeIndex: number) {
         this.shape = shapes[shapeIndex];
-        for (let move of initialMoves.split("")) {
-            this.move(move);
-        }
     }
 
-    move(direction: string, grid?: number[][]) {
-        // TODO: determine if shape can move in direction
-        
-        
-        if (direction === "<" && this.left > 0) {
-            this.left--;
-            this.right--;
+    move(direction: string) {
+        if (direction === "<") {
             this.shiftLeft();
-        } else if (direction === ">" && this.right < 6) {
-            this.left++;
-            this.right++;
+        } else if (direction === ">") {
             this.shiftRight();
         }
     }
@@ -79,13 +65,13 @@ class Rock {
 }
 
 class Chamber {
-    grid: number[][];
+    chamber: number[][];
     height = 0;
     ticks = 0;
     rockCount = 0;
 
     constructor(public moves: string) {
-        this.grid = [
+        this.chamber = [
             [1, 1, 1, 1, 1, 1, 1]
         ];
     }
@@ -95,64 +81,103 @@ class Chamber {
         while(this.rockCount < rocks) {
             this.startRock(this.rockCount);
             this.print();
-            console.log("");
-            console.log("");
         }
     }
 
     startRock(r: number) {
-        // get the next 3 moves
-        let mIndex = this.ticks % this.moves.length;
-        let moves = this.moves.substring(mIndex, mIndex + 3);
-        this.ticks += 3;
-
-        let rock = new Rock(r % 5, moves);
+        let rock = new Rock(r % 5);
         this.rockCount++;
+
+        // add 3 empty rows
+        for (let i = 0; i < 3; i++) {
+            this.chamber.unshift([0, 0, 0, 0, 0, 0, 0]);
+        }
+        this.print();
 
         // move rock down
         do {
-            rock.move(this.moves[this.ticks++ % this.moves.length], this.grid.slice(0, rock.offset + 1));
+            this.moveRockFromJets(rock);
             rock.offset++;
-        } while (this.canMoveDown(rock));
+        } while (this.rockCanFall(rock));
 
         // add rock to grid
         this.rockComesToRest(rock);
     }
 
-    canMoveDown(rock: Rock) {
-        // TODO: add logic to check entire shape
-        let top = this.grid[0];
-        let rockCompareRow = rock.shape[rock.shape.length - 1 - rock.offset];
-        for (let i = 0; i < rockCompareRow.length; i++) {
-            if (top[i] && rockCompareRow[i]) { return false };
+    moveRockFromJets(rock: Rock) {
+        let jet = this.moves[this.ticks++ % this.moves.length]
+        if (this.rockCanMove(rock, jet)) {
+            rock.move(jet);
+        }
+    }
+
+    rockCanMove(rock: Rock, direction: string) {
+        for (let i = 0; i < rock.shape.length; i++) {
+            let rockRow = rock.shape[i];
+            let chamberRow = [0, 0, 0, 0, 0, 0, 0];
+            if (rock.offset + i >= this.chamber.length) { 
+                chamberRow = this.chamber[rock.offset + i];
+            }
+
+            let rockLeft = rockRow.indexOf(1);
+            let rockRight = rockRow.lastIndexOf(1);
+
+            let wallLeft = chamberRow.indexOf(1);
+            let wallRight = chamberRow.lastIndexOf(1);
+            if (wallLeft === -1) { wallLeft = 0; }
+            if (wallRight === -1) { wallRight = 6; }
+    
+            // check walls
+            if (direction === "<" && rockLeft <= wallLeft) { return false; }
+            if (direction === ">" && rockRight >= wallRight) { return false; }
+        }
+        return true;
+    }
+
+    rockCanFall(rock: Rock) {
+        for (let i = 0; i < rock.shape.length; i++) {
+            let rockRow = rock.shape[i];
+            let chamberRow = [0, 0, 0, 0, 0, 0, 0];
+            if (rock.offset - i >= 0) { 
+                chamberRow = this.chamber[rock.offset - i];
+            }
+            for (let j = 0; j < rockRow.length; j++) {
+                if (rockRow[j] && chamberRow[j]) {
+                    return false;
+                }
+            }
         }
         return true;
     }
 
     rockComesToRest(rock: Rock) {
-        let oldTop = [];
-        for (let i = 0; i < rock.offset; i++) {
-            oldTop.push(this.grid.pop());
+        let bottomRow = rock.offset;
+        for (let i = rock.shape.length - 1; i >= 0; i--) {
+            this.mergeRow(rock.shape[i], bottomRow - (rock.shape.length - i));
         }
-        oldTop.reverse();
-        let newTop = [];
-        rock.shape.reverse();
-        for (let i = 0; i < rock.shape.length; i++) {
-            let topRow: number[] = oldTop.pop() ?? [0, 0, 0, 0, 0, 0, 0];
-            for (let j = 0; j < topRow.length; j++) {
-                topRow[j] = rock.shape[i][j] || topRow[j];
+
+        // delete empty rows
+        for (let i = 0; i < this.chamber.length; i++) {
+            if (this.chamber[i].every(x => x === 0)) {
+                this.chamber.splice(i, 1);
+                i--;
             }
-            newTop.push(topRow);
         }
-        while(newTop.length > 0){
-            this.grid.unshift(newTop.shift()!);
+    }
+
+    mergeRow(rockRow: number[], offset: number) {
+        if (this.chamber.length - offset < 0) { this.chamber.unshift(rockRow) };
+        for (let i = 0; i < rockRow.length; i++) {
+            this.chamber[offset][i] ||= rockRow[i];
         }
     }
 
     print() {
-        for (let row of this.grid) {
-            console.log(`|${row.map(x => x === 0 ? "." : "#").join("")}|`);
+        for (let i = 0; i <= this.chamber.length - 1; i++) {
+            console.log(`|${this.chamber[i].map(x => x === 0 ? "." : "#").join("")}|`);
         }
+        console.log("");
+        console.log("");
     }
 }
 
@@ -160,6 +185,6 @@ let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 
 console.log("==== PART 1 ====");
 let chamber = new Chamber(contents);
-chamber.rockFall(3);
+chamber.rockFall(2);
 
 //console.log("==== PART 2 ====");
