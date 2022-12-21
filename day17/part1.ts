@@ -65,14 +65,19 @@ class Rock {
     }
 }
 
+class FloorCacheItem {
+    constructor(public curHeight = 0, public curRockCount = 0, public heightDiff = 0, public rockCountDiff = 0) {}
+}
+
 class Chamber {
     chamber: number[][];
     ticks = 0;
     rockCount = 0;
     heightOffset = 0;
     cache: Map<string, string> = new Map();
+    floorCache: Map<number, FloorCacheItem> = new Map();
 
-    constructor(public moves: string, public cacheRowCount: number) {
+    constructor(public moves: string, public targetRockCount: number, public cacheRowCount: number) {
         this.chamber = [
             [1, 1, 1, 1, 1, 1, 1]
         ];
@@ -82,13 +87,10 @@ class Chamber {
         return this.chamber.length + this.heightOffset - 1;
     }
     
-    rockFall(rocks: number) {
+    rockFall() {
         this.rockCount = 0;
-        while(this.rockCount < rocks) {
+        while(this.rockCount < this.targetRockCount) {
             this.startRock(this.rockCount);
-            if (this.rockCount % 1000000 === 0) {
-                console.log(this.rockCount);
-            }
             //this.print();
             //console.log(this.rockCount);
         }
@@ -102,13 +104,13 @@ class Chamber {
         return `${rockIndex}-${index}-${this.ticks % this.moves.length}`;
     }
 
-    setCache(key: string, elapsedTicks: number, heightDiff: number) {
+    setCache(key: string, r: number, elapsedTicks: number, heightDiff: number) {
         let val = this.chamber.slice(0, Math.min(this.cacheRowCount, this.chamber.length - 1)).map(row => row.join("")).join(",");
         val = `${elapsedTicks}|${heightDiff}|${val}`;
         this.cache.set(key, val);
         this.resetFloor();
     }
-
+    
     resetFloor() {
         // make a new floor out of any row that is all 1s
         if (this.chamber.length > this.cacheRowCount) {
@@ -116,6 +118,25 @@ class Chamber {
             if (highestFloor < this.chamber.length - 1) {
                 this.heightOffset += this.chamber.length - highestFloor - 1;
                 this.chamber = this.chamber.slice(0, highestFloor + 1);
+                // wait for the pattern to stabilize, then fast-forward
+                if (this.getHeight() > 20000) {
+                    let tickIndex = this.ticks % this.moves.length;
+                    let floorCacheItem = this.floorCache.get(tickIndex);
+                    if (floorCacheItem) {
+                        if (floorCacheItem.heightDiff === 0) {
+                            floorCacheItem.heightDiff = this.getHeight() - floorCacheItem.curHeight;
+                            floorCacheItem.rockCountDiff = this.rockCount - floorCacheItem.curRockCount;
+
+                            // fast forward to the end
+                            let iterations = Math.floor((this.targetRockCount - this.rockCount) / floorCacheItem.rockCountDiff);
+                            this.rockCount += floorCacheItem.rockCountDiff * iterations;
+                            this.heightOffset += floorCacheItem.heightDiff * iterations;
+                            //console.log(`Fast forward: height = ${this.getHeight()}, count = ${this.rockCount}, iterations = ${iterations}`);
+                        }
+                    } else {
+                        this.floorCache.set(tickIndex, new FloorCacheItem(this.getHeight(), this.rockCount));
+                    }
+                }
             }
         }
     }
@@ -152,7 +173,7 @@ class Chamber {
 
         // add rock to grid
         this.rockComesToRest(rock);
-        this.setCache(key, this.ticks - ticksBefore, this.chamber.length - heightBefore);
+        this.setCache(key, r, this.ticks - ticksBefore, this.chamber.length - heightBefore);
     }
 
     moveRockFromJets(rock: Rock) {
@@ -239,13 +260,11 @@ class Chamber {
 let contents = readFile(`${ROOT_DIR}/input.txt`);
 
 console.log("==== PART 1 ====");
-let chamber = new Chamber(contents, 50);
-chamber.rockFall(2022);
+let chamber = new Chamber(contents, 2022, 50);
+chamber.rockFall();
 console.log(`Rock height: ${chamber.getHeight()}`);
-console.log(`Cache size: ${chamber.cache.size}`);
 
 console.log("==== PART 2 ====");
-chamber = new Chamber(contents, 50);
-chamber.rockFall(1000000000000);
+chamber = new Chamber(contents, 1000000000000, 100);
+chamber.rockFall();
 console.log(`Rock height: ${chamber.getHeight()}`);
-console.log(`Cache size: ${chamber.cache.size}`);
