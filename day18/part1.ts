@@ -10,28 +10,12 @@ function readFile(fileName: string): string {
 class Point {
     constructor(public x: number, public y: number, public z: number) {}
 
-    getPointPlusX(): Point {
-        return new Point(this.x + 1, this.y, this.z);
+    plus(other: Point): Point {
+        return new Point(this.x + other.x, this.y + other.y, this.z + other.z);
     }
 
-    getPointPlusY(): Point {
-        return new Point(this.x, this.y + 1, this.z);
-    }
-
-    getPointPlusZ(): Point {
-        return new Point(this.x, this.y, this.z + 1);
-    }
-
-    getPointMinusX(): Point {
-        return new Point(this.x - 1, this.y, this.z);
-    }
-
-    getPointMinusY(): Point {
-        return new Point(this.x, this.y - 1, this.z);
-    }
-
-    getPointMinusZ(): Point {
-        return new Point(this.x, this.y, this.z - 1);
+    minus(other: Point): Point {
+        return new Point(this.x - other.x, this.y - other.y, this.z - other.z);
     }
 
     equals(other: Point): boolean {
@@ -39,21 +23,24 @@ class Point {
     }
 }
 
-class Vector {
-    static up = new Vector(new Point(0, 0, 0), new Point(0, 0, 1));
-    static down = new Vector(new Point(0, 0, 0), new Point(0, 0, -1));
-    static left = new Vector(new Point(0, 0, 0), new Point(-1, 0, 0));
-    static right = new Vector(new Point(0, 0, 0), new Point(1, 0, 0));
-    static forward = new Vector(new Point(0, 0, 0), new Point(0, 1, 0));
-    static back = new Vector(new Point(0, 0, 0), new Point(0, -1, 0));
+class Vector extends Point {
+    static up = new Vector(new Point(0, 0, 1));
+    static down = new Vector(new Point(0, 0, -1));
+    static left = new Vector(new Point(-1, 0, 0));
+    static right = new Vector(new Point(1, 0, 0));
+    static forward = new Vector(new Point(0, 1, 0))
+    static back = new Vector(new Point(0, -1, 0));
 
-    constructor(public origin: Point, public direction: Point) {}
+    constructor(direction: Point) {
+        super(direction.x, direction.y, direction.z);
+    }
 
     isOpposite(other: Vector): boolean {
-        return this.origin.equals(other.origin) && 
-            this.direction.x === -other.direction.x && 
-            this.direction.y === -other.direction.y && 
-            this.direction.z === -other.direction.z;
+        return this.x === -other.x && this.y === -other.y && this.z === -other.z;
+    }
+
+    getOpposite(): Vector {
+        return new Vector(new Point(-this.x, -this.y, -this.z));
     }
 }
 
@@ -62,6 +49,24 @@ class Face {
 }
 
 class Cube {
+    static makeFromFace(oppositeFace: Face) {
+        if (oppositeFace.facing.equals(Vector.left) ||
+            oppositeFace.facing.equals(Vector.forward) ||
+            oppositeFace.facing.equals(Vector.down)) {
+            return new Cube(`${oppositeFace.point.x},${oppositeFace.point.y},${oppositeFace.point.z}`);
+        }
+        if (oppositeFace.facing.equals(Vector.right)) {
+            return new Cube(`${oppositeFace.point.x - 1},${oppositeFace.point.y},${oppositeFace.point.z}`);
+        }
+        if (oppositeFace.facing.equals(Vector.up)) {
+            return new Cube(`${oppositeFace.point.x},${oppositeFace.point.y},${oppositeFace.point.z - 1}`);
+        }
+        if (oppositeFace.facing.equals(Vector.back)) {
+            return new Cube(`${oppositeFace.point.x},${oppositeFace.point.y - 1},${oppositeFace.point.z}`);
+        }
+        throw new Error("Invalid face");
+    }
+
     point: Point;
     faceLeft: Face;
     faceRight: Face;
@@ -77,21 +82,11 @@ class Cube {
         this.faceLeft = new Face(this.point, Vector.left);
         this.faceBottom = new Face(this.point, Vector.down);
         this.faceFront = new Face(this.point, Vector.forward);
-        this.faceRight = new Face(this.point.getPointPlusX(), Vector.right);
-        this.faceTop = new Face(this.point.getPointPlusZ(), Vector.up);
-        this.faceBack = new Face(this.point.getPointPlusY(), Vector.back);
+        this.faceRight = new Face(this.point.plus(Vector.right), Vector.right);
+        this.faceTop = new Face(this.point.plus(Vector.up), Vector.up);
+        this.faceBack = new Face(this.point.plus(Vector.back), Vector.back);
         
         this.faces = [this.faceLeft, this.faceRight, this.faceTop, this.faceBottom, this.faceFront, this.faceBack];
-    }
-
-    hasAdjacentFaces(other: Cube): boolean {
-        return this.point.equals(other.point) ||
-            this.point.getPointPlusX().equals(other.point) ||
-            this.point.getPointPlusY().equals(other.point) ||
-            this.point.getPointPlusZ().equals(other.point) ||
-            this.point.getPointMinusX().equals(other.point) ||
-            this.point.getPointMinusY().equals(other.point) ||
-            this.point.getPointMinusZ().equals(other.point);
     }
 }
 
@@ -100,21 +95,29 @@ let lines = contents.split("\n");
 let cubes = lines.map(line => new Cube(line));
 
 console.log("==== PART 1 ====");
-let allFaces = cubes.map(cube => cube.faces).reduce((a, b) => a.concat(b));
-let insideFaces = [];
-// remove all faces where point is the same and facing is opposite
-for (let i = 0; i < allFaces.length; i++) {
-    let face = allFaces[i];
-    let oppositeFace = allFaces.find(f => f.point.equals(face.point) && f.facing.isOpposite(face.facing));
+let outsideFaces = cubes.map(cube => cube.faces).reduce((a, b) => a.concat(b));
+for (let i = 0; i < outsideFaces.length; i++) {
+    let face = outsideFaces[i];
+    let oppositeFace = outsideFaces.find(f => f.point.equals(face.point) && f.facing.isOpposite(face.facing));
     if (oppositeFace) {
-        allFaces.splice(allFaces.indexOf(oppositeFace), 1);
-        allFaces.splice(allFaces.indexOf(face), 1);
-        insideFaces.push(face);
-        insideFaces.push(oppositeFace);
+        outsideFaces.splice(outsideFaces.indexOf(oppositeFace), 1);
+        outsideFaces.splice(outsideFaces.indexOf(face), 1);
         i--;
     }
 }
-console.log(allFaces.length);
+console.log(outsideFaces.length);
 
 console.log("==== PART 2 ====");
-console.log(insideFaces.length);
+let cubeMap = new Map<string, number>();
+outsideFaces.forEach(face => {
+    let oppositeFace = new Face(face.point, new Vector(face.facing.getOpposite()));
+    let cube = Cube.makeFromFace(oppositeFace);
+    let count = cubeMap.get(cube.name) || 0;
+    cubeMap.set(cube.name, count + 1);
+});
+// get the key where the value is 6
+let airPockets = Array.from(cubeMap.keys()).filter(key => cubeMap.get(key) === 6);
+console.log(airPockets.length);
+console.log(outsideFaces.length - (6 * airPockets.length));
+//less than 2778
+// greater than 1170
