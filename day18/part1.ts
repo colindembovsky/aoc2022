@@ -101,6 +101,7 @@ let cubes = lines.map(line => new Cube(line));
 
 console.log("==== PART 1 ====");
 let allFaces = cubes.map(cube => cube.faces).reduce((a, b) => a.concat(b));
+let insideFaces = [];
 // remove all faces where point is the same and facing is opposite
 for (let i = 0; i < allFaces.length; i++) {
     let face = allFaces[i];
@@ -108,9 +109,12 @@ for (let i = 0; i < allFaces.length; i++) {
     if (oppositeFace) {
         allFaces.splice(allFaces.indexOf(oppositeFace), 1);
         allFaces.splice(allFaces.indexOf(face), 1);
+        insideFaces.push(face);
+        insideFaces.push(oppositeFace);
         i--;
     }
 }
 console.log(allFaces.length);
 
 console.log("==== PART 2 ====");
+console.log(insideFaces.length);
