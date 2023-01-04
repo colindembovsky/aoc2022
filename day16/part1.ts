@@ -33,7 +33,6 @@ class Volcano {
     tunnels: Tunnel[];
     totalOpenableValves: number;
     solvedTunnels = new Map<string, number>();
-    count = 0;
 
     constructor(public lines: string[]) {
         this.tunnels = lines.map(line => new Tunnel(line, this));
@@ -46,7 +45,6 @@ class Volcano {
 
     calculateMaxFlowFromHereAndNow(current: Tunnel, openValves: string[], time: number) {
         if (time === 0 || openValves.length === this.totalOpenableValves) return 0;
-        this.count++;
 
         let key = `${current.name}${time}${openValves.join("")}`;
         if (this.solvedTunnels.has(key)) {
@@ -62,7 +60,7 @@ class Volcano {
         } 
         // move to next tunnel
         for (let tunnel of current.getTunnelsFromHere()) {
-            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, [...openValves], time - 1);
+            let nextFlow = this.calculateMaxFlowFromHereAndNow(tunnel, openValves, time - 1);
             totalFlowFromHereAndNow = Math.max(totalFlowFromHereAndNow, nextFlow);
         }
         
