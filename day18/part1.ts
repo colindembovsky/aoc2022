@@ -108,16 +108,27 @@ for (let i = 0; i < outsideFaces.length; i++) {
 console.log(outsideFaces.length);
 
 console.log("==== PART 2 ====");
-let cubeMap = new Map<string, number>();
-outsideFaces.forEach(face => {
-    let oppositeFace = new Face(face.point, new Vector(face.facing.getOpposite()));
-    let cube = Cube.makeFromFace(oppositeFace);
-    let count = cubeMap.get(cube.name) || 0;
-    cubeMap.set(cube.name, count + 1);
-});
-// get the key where the value is 6
-let airPockets = Array.from(cubeMap.keys()).filter(key => cubeMap.get(key) === 6);
-console.log(airPockets.length);
-console.log(outsideFaces.length - (6 * airPockets.length));
+
+let outsidePoints = outsideFaces.map(face => face.point);
+let cubePoints = cubes.map(cube => cube.point);
+
+let innerFaceCount = 0;
+for (let face of outsideFaces) {
+    let point = face.point;
+    let facing = face.facing;
+    // shoot a ray from the face: if it hits a cube, then it's not outside
+    for (let i = 1; i < 25; i++) {
+        let newPoint = point.plus(facing);
+        if (cubePoints.find(p => p.equals(newPoint)) !== undefined) {
+            innerFaceCount++;
+            break;
+        }
+        point = newPoint;
+    }
+}
+console.log(outsideFaces.length - innerFaceCount);
+
 //less than 2778
+// ! 2236
+// ! 2072
 // greater than 1170
