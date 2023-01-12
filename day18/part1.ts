@@ -88,6 +88,17 @@ class Cube {
         
         this.faces = [this.faceLeft, this.faceRight, this.faceTop, this.faceBottom, this.faceFront, this.faceBack];
     }
+
+    getNeighbors(): Cube[] {
+        return [
+            new Cube(`${this.point.x - 1},${this.point.y},${this.point.z}`),
+            new Cube(`${this.point.x + 1},${this.point.y},${this.point.z}`),
+            new Cube(`${this.point.x},${this.point.y - 1},${this.point.z}`),
+            new Cube(`${this.point.x},${this.point.y + 1},${this.point.z}`),
+            new Cube(`${this.point.x},${this.point.y},${this.point.z - 1}`),
+            new Cube(`${this.point.x},${this.point.y},${this.point.z + 1}`)
+        ];
+    }
 }
 
 let contents = readFile(`${ROOT_DIR}/input.txt`);
@@ -109,26 +120,48 @@ console.log(outsideFaces.length);
 
 console.log("==== PART 2 ====");
 
-let outsidePoints = outsideFaces.map(face => face.point);
-let cubePoints = cubes.map(cube => cube.point);
+let minX = Math.min(...cubes.map(cube => cube.point.x));
+let minY = Math.min(...cubes.map(cube => cube.point.y));
+let minZ = Math.min(...cubes.map(cube => cube.point.z));
+let maxX = Math.max(...cubes.map(cube => cube.point.x));
+let maxY = Math.max(...cubes.map(cube => cube.point.y));
+let maxZ = Math.max(...cubes.map(cube => cube.point.z));
+let minCube = new Cube(`${minX},${minY},${minZ}`);
 
-let innerFaceCount = 0;
-for (let face of outsideFaces) {
-    let point = face.point;
-    let facing = face.facing;
-    // shoot a ray from the face: if it hits a cube, then it's not outside
-    for (let i = 1; i < 25; i++) {
-        let newPoint = point.plus(facing);
-        if (cubePoints.find(p => p.equals(newPoint)) !== undefined) {
-            innerFaceCount++;
-            break;
-        }
-        point = newPoint;
+let visited = new Set<string>();
+let surfaces = new Set<string>();
+let filledAir = new Set<string>();
+
+let queue = new Array<string>();
+queue.push(minCube.name);
+while(queue.length > 0) {
+    let cube = new Cube(queue.pop()!);
+    if (visited.has(cube.name)) {
+        continue;
     }
-}
-console.log(outsideFaces.length - innerFaceCount);
+    visited.add(cube.name);
 
-//less than 2778
-// ! 2236
-// ! 2072
-// greater than 1170
+    if (cube.point.x < minX - 2 || cube.point.x > maxX + 2 ||
+        cube.point.y < minY - 2 || cube.point.y > maxY + 2 ||
+        cube.point.z < minZ - 2 || cube.point.z > maxZ + 2) {
+        continue;
+    }
+
+    let neighbors = cube.getNeighbors();
+    let airNeighbors = neighbors.filter(c => !cubes.some(cb => cb.name === c.name));
+    let cubeNeighbors = neighbors.filter(c => cubes.some(cb => cb.name === c.name));
+
+    if (cubeNeighbors.length > 0) {
+        cubeNeighbors.map(c => c.name).forEach(c => surfaces.add(c));
+        filledAir.add(cube.name);
+    }
+
+    queue.push(...airNeighbors.map(c => c.name));
+}
+
+let outerSurface = 0;
+for(let lava of surfaces) {
+    let lavaCube = new Cube(lava);
+    outerSurface += lavaCube.getNeighbors().filter(c => !cubes.some(cb => cb.name === c.name)).filter(c => filledAir.has(c.name)).length;
+}
+console.log(`Outer surface: ${outerSurface}`);
