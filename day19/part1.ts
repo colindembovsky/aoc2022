@@ -7,10 +7,131 @@ function readFile(fileName: string): string {
     return fs.readFileSync(fileName, "utf8");
 }
 
-let contents = readFile(`${ROOT_DIR}/input.txt`);
+enum MaterialType {
+    ORE = 0,
+    CLAY = 1,
+    OBSIDIAN = 2,
+    GEODE = 3,
+};
+
+class State {
+    constructor(public robots = [1, 0, 0, 0], public materials = [0, 0, 0, 0]) {}
+
+    mine() {
+        for (let i = 0; i < this.robots.length; i++) {
+            this.materials[i] += this.robots[i];
+        }
+    }
+
+    getKey(min: number) {
+        return `${min}-${this.robots.join("")}-${this.materials.join("")}`;
+    }
+}
+
+class BluePrint {
+    id: number = 0;
+    maxGeodes: number = 0;
+
+    oreRobotCost: number = 0;
+    clayRobotCost: number = 0;
+    obsidianRobotCost: number[] = [0, 0];
+    geodeRobotCost: number[] = [0, 0];
+
+    stateCache: Map<string, number> = new Map();
+
+    constructor(public blueprint: string) {
+        // parse string using regex with format: "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian."
+        let regex = /Blueprint (\d+): Each ore robot costs (\d+) ore. Each clay robot costs (\d+) ore. Each obsidian robot costs (\d+) ore and (\d+) clay. Each geode robot costs (\d+) ore and (\d+) obsidian./;
+        let matches = regex.exec(this.blueprint);
+        if (matches === null) {
+            throw new Error("Invalid blueprint string");
+        }
+
+        this.id = parseInt(matches[1]);
+        this.oreRobotCost = parseInt(matches[2]);
+        this.clayRobotCost = parseInt(matches[3]);
+        this.obsidianRobotCost[0] = parseInt(matches[4]);
+        this.obsidianRobotCost[1] = parseInt(matches[5]);
+        this.geodeRobotCost[0] = parseInt(matches[6]);
+        this.geodeRobotCost[1] = parseInt(matches[7]);
+    }
+
+    calcQuality() {
+        let endStates = this.mine(24, new State());
+        return this.maxGeodes;
+    }
+
+    mine(minutesLeft: number, state: State) {
+        if (minutesLeft === 0) return state.materials[MaterialType.GEODE];
+
+        let key = state.getKey(minutesLeft);
+        if (this.stateCache.has(key)) {
+            return this.stateCache.get(key)!;
+        }
+        
+        let statesFromHere = this.getNextPossibleStates(state);
+        state.mine();
+        statesFromHere.push(state);
+        
+        let maxNextGeodes = 0;
+        let curGeodes = state.materials[MaterialType.GEODE];
+        statesFromHere.forEach(nextState => {
+            let maxGeodes = this.mine(minutesLeft - 1, nextState);
+            maxNextGeodes = Math.max(maxNextGeodes, curGeodes + maxGeodes);
+        })
+
+        this.stateCache.set(key, maxNextGeodes);
+        return maxNextGeodes;
+    }
+
+    getNextPossibleStates(state: State) {
+        let nextStates = [];
+        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
+            let newState = new State(state.robots.slice(), state.materials.slice());
+            newState.robots[MaterialType.ORE] += 1;
+            newState.materials[MaterialType.ORE] -= this.oreRobotCost;
+            nextStates.push(newState);
+        }
+        
+        if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
+            let newState = new State(state.robots.slice(), state.materials.slice());
+            newState.robots[MaterialType.CLAY] += 1;
+            newState.materials[MaterialType.ORE] -= this.clayRobotCost;
+            nextStates.push(newState);
+        }
+
+        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[MaterialType.ORE] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[MaterialType.CLAY]) {
+            let newState = new State(state.robots.slice(), state.materials.slice());
+            newState.robots[MaterialType.OBSIDIAN] += 1;
+            newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[MaterialType.ORE];
+            newState.materials[MaterialType.CLAY] -= this.obsidianRobotCost[MaterialType.CLAY];
+            nextStates.push(newState);
+        }
+        
+        if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[MaterialType.ORE] && state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[MaterialType.OBSIDIAN]) {
+            let newState = new State(state.robots.slice(), state.materials.slice());
+            newState.robots[MaterialType.GEODE] += 1;
+            newState.materials[MaterialType.ORE] -= this.geodeRobotCost[MaterialType.ORE];
+            newState.materials[MaterialType.OBSIDIAN] -= this.geodeRobotCost[MaterialType.OBSIDIAN];
+            nextStates.push(newState);
+        }
+        
+        return nextStates;
+    }
+}
+
+let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 let lines = contents.split("\n");
+let blueprints = lines.map(line => new BluePrint(line));
 
 console.log("==== PART 1 ====");
+let totalQuality = 0;
+blueprints.forEach(blueprint => {
+    let q = blueprint.calcQuality();
+    console.log(`Blueprint ${blueprint.id} has quality ${q}`);
+    totalQuality += q;
+});
+console.log(`Total quality: ${totalQuality}`);
 
 console.log("==== PART 2 ====");
 
