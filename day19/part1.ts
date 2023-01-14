@@ -88,28 +88,32 @@ class BluePrint {
         let nextStates = [];
         if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[0] && state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.GEODE] += 1;
             newState.materials[MaterialType.ORE] -= this.geodeRobotCost[0];
             newState.materials[MaterialType.OBSIDIAN] -= this.geodeRobotCost[1];
+            newState.mine();
+            newState.robots[MaterialType.GEODE] += 1;
             nextStates.push(newState);
         }
-        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
+        else if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.OBSIDIAN] += 1;
             newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[0];
             newState.materials[MaterialType.CLAY] -= this.obsidianRobotCost[1];
+            newState.mine();
+            newState.robots[MaterialType.OBSIDIAN] += 1;
             nextStates.push(newState);
         }
-        if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
+        else if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.CLAY] += 1;
             newState.materials[MaterialType.ORE] -= this.clayRobotCost;
+            newState.mine();
+            newState.robots[MaterialType.CLAY] += 1;
             nextStates.push(newState);
         }
-        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
+        else if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.ORE] += 1;
             newState.materials[MaterialType.ORE] -= this.oreRobotCost;
+            newState.mine();
+            newState.robots[MaterialType.ORE] += 1;
             nextStates.push(newState);
         }
         
