@@ -24,13 +24,12 @@ class State {
     }
 
     getKey(min: number) {
-        return `${min}-${this.robots.join("")}-${this.materials.join("")}`;
+        return `${min}-${this.robots.join(",")}-${this.materials.join(",")}`;
     }
 }
 
 class BluePrint {
     id: number = 0;
-    maxGeodes: number = 0;
 
     oreRobotCost: number = 0;
     clayRobotCost: number = 0;
@@ -57,8 +56,8 @@ class BluePrint {
     }
 
     calcQuality() {
-        let endStates = this.mine(24, new State());
-        return this.maxGeodes;
+        let maxGeodes = this.mine(24, new State());
+        return maxGeodes * this.id;
     }
 
     mine(minutesLeft: number, state: State) {
@@ -66,6 +65,7 @@ class BluePrint {
 
         let key = state.getKey(minutesLeft);
         if (this.stateCache.has(key)) {
+            //console.log(`cache hit for ${key}`);
             return this.stateCache.get(key)!;
         }
         
@@ -86,33 +86,30 @@ class BluePrint {
 
     getNextPossibleStates(state: State) {
         let nextStates = [];
-        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
+        if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[0] && state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.ORE] += 1;
-            newState.materials[MaterialType.ORE] -= this.oreRobotCost;
+            newState.robots[MaterialType.GEODE] += 1;
+            newState.materials[MaterialType.ORE] -= this.geodeRobotCost[0];
+            newState.materials[MaterialType.OBSIDIAN] -= this.geodeRobotCost[1];
             nextStates.push(newState);
         }
-        
+        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
+            let newState = new State(state.robots.slice(), state.materials.slice());
+            newState.robots[MaterialType.OBSIDIAN] += 1;
+            newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[0];
+            newState.materials[MaterialType.CLAY] -= this.obsidianRobotCost[1];
+            nextStates.push(newState);
+        }
         if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.robots[MaterialType.CLAY] += 1;
             newState.materials[MaterialType.ORE] -= this.clayRobotCost;
             nextStates.push(newState);
         }
-
-        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[MaterialType.ORE] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[MaterialType.CLAY]) {
+        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.OBSIDIAN] += 1;
-            newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[MaterialType.ORE];
-            newState.materials[MaterialType.CLAY] -= this.obsidianRobotCost[MaterialType.CLAY];
-            nextStates.push(newState);
-        }
-        
-        if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[MaterialType.ORE] && state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[MaterialType.OBSIDIAN]) {
-            let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.robots[MaterialType.GEODE] += 1;
-            newState.materials[MaterialType.ORE] -= this.geodeRobotCost[MaterialType.ORE];
-            newState.materials[MaterialType.OBSIDIAN] -= this.geodeRobotCost[MaterialType.OBSIDIAN];
+            newState.robots[MaterialType.ORE] += 1;
+            newState.materials[MaterialType.ORE] -= this.oreRobotCost;
             nextStates.push(newState);
         }
         
