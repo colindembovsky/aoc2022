@@ -24,7 +24,7 @@ class State {
     }
 
     getKey(min: number) {
-        return `${min}-${this.robots.join(",")}-${this.materials.join(",")}`;
+        return `${min}${this.robots.join("")}${this.materials.join("")}`;
     }
 }
 
@@ -37,6 +37,7 @@ class BluePrint {
     geodeRobotCost: number[] = [0, 0];
 
     stateCache: Map<string, number> = new Map();
+    cacheHits: number = 0;
 
     constructor(public blueprint: string) {
         // parse string using regex with format: "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian."
@@ -57,15 +58,18 @@ class BluePrint {
 
     calcQuality() {
         let maxGeodes = this.mine(24, new State());
+        console.log(`cache hits: ${this.cacheHits}`);
+        console.log(`cache size: ${this.stateCache.size}`);
         return maxGeodes * this.id;
     }
 
     mine(minutesLeft: number, state: State) {
-        if (minutesLeft === 0) return state.materials[MaterialType.GEODE];
+        if (minutesLeft === 0) return 0;
 
         let key = state.getKey(minutesLeft);
         if (this.stateCache.has(key)) {
             //console.log(`cache hit for ${key}`);
+            this.cacheHits++;
             return this.stateCache.get(key)!;
         }
         
@@ -73,20 +77,23 @@ class BluePrint {
         state.mine();
         statesFromHere.push(state);
         
-        let maxNextGeodes = 0;
-        let curGeodes = state.materials[MaterialType.GEODE];
+        let maxGeodes = state.materials[MaterialType.GEODE];
         statesFromHere.forEach(nextState => {
-            let maxGeodes = this.mine(minutesLeft - 1, nextState);
-            maxNextGeodes = Math.max(maxNextGeodes, curGeodes + maxGeodes);
-        })
+            let maxNextGeodes = this.mine(minutesLeft - 1, nextState);
+            maxGeodes = Math.max(maxGeodes, maxNextGeodes);
+        });
 
-        this.stateCache.set(key, maxNextGeodes);
-        return maxNextGeodes;
+        if (this.stateCache.size % 500000 === 0) {
+            console.log(`cache size: ${this.stateCache.size}`);
+        }
+        this.stateCache.set(key, maxGeodes);
+        return maxGeodes;
     }
 
     getNextPossibleStates(state: State) {
         let nextStates = [];
-        if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[0] && state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[1]) {
+        if (state.materials[MaterialType.ORE] >= this.geodeRobotCost[0] && 
+            state.materials[MaterialType.OBSIDIAN] >= this.geodeRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.materials[MaterialType.ORE] -= this.geodeRobotCost[0];
             newState.materials[MaterialType.OBSIDIAN] -= this.geodeRobotCost[1];
@@ -94,7 +101,8 @@ class BluePrint {
             newState.robots[MaterialType.GEODE] += 1;
             nextStates.push(newState);
         }
-        else if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
+        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && 
+            state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[0];
             newState.materials[MaterialType.CLAY] -= this.obsidianRobotCost[1];
@@ -102,14 +110,14 @@ class BluePrint {
             newState.robots[MaterialType.OBSIDIAN] += 1;
             nextStates.push(newState);
         }
-        else if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
+        if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.materials[MaterialType.ORE] -= this.clayRobotCost;
             newState.mine();
             newState.robots[MaterialType.CLAY] += 1;
             nextStates.push(newState);
         }
-        else if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
+        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.materials[MaterialType.ORE] -= this.oreRobotCost;
             newState.mine();
