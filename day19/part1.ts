@@ -45,6 +45,9 @@ class BluePrint {
     geodeRobotCost: number[] = [0, 0];
 
     stateCache: Map<number, number> = new Map();
+    stateCache2: Map<number, number> = new Map();
+    stateCache3: Map<number, number> = new Map();
+    stateCache4: Map<number, number> = new Map();
     cacheHits: number = 0;
 
     constructor(public blueprint: string) {
@@ -65,8 +68,11 @@ class BluePrint {
     }
 
     calcQuality() {
-        let maxGeodes = this.mine(24, new State());
-        return maxGeodes * this.id;
+        return this.calcMaxGeodes(24) * this.id;
+    }
+
+    calcMaxGeodes(mins: number) {
+        return this.mine(mins, new State());
     }
 
     mine(minutesLeft: number, state: State) {
@@ -77,6 +83,18 @@ class BluePrint {
             //console.log(`cache hit for ${key}`);
             this.cacheHits++;
             return this.stateCache.get(key)!;
+        } else if (this.stateCache2.has(key)) {
+            //console.log(`cache hit for ${key}`);
+            this.cacheHits++;
+            return this.stateCache2.get(key)!;
+        } else if (this.stateCache3.has(key)) {
+            //console.log(`cache hit for ${key}`);
+            this.cacheHits++;
+            return this.stateCache3.get(key)!;
+        } else if (this.stateCache4.has(key)) {
+            //console.log(`cache hit for ${key}`);
+            this.cacheHits++;
+            return this.stateCache4.get(key)!;
         }
         
         let statesFromHere = this.getNextPossibleStates(state, minutesLeft);
@@ -89,10 +107,19 @@ class BluePrint {
             maxGeodes = Math.max(maxGeodes, maxNextGeodes);
         });
 
-        if (this.stateCache.size % 500000 === 0) {
-            console.log(`cache size: ${this.stateCache.size}`);
+        if (this.stateCache.size % 500000 === 0 && this.stateCache2.size % 500000 === 0 && this.stateCache3.size % 500000 === 0 &&
+            this.stateCache4.size % 500000 === 0) {
+            console.log(`cache size: ${this.stateCache.size + this.stateCache2.size + + this.stateCache3.size + this.stateCache4.size}`);
         }
-        this.stateCache.set(key, maxGeodes);
+        if (this.stateCache.size < 16500000) {
+            this.stateCache.set(key, maxGeodes);
+        } else if (this.stateCache2.size < 16500000) {
+            this.stateCache2.set(key, maxGeodes);
+        } else if (this.stateCache3.size < 16500000) {
+            this.stateCache3.set(key, maxGeodes);
+        } else {
+            this.stateCache4.set(key, maxGeodes);
+        }
         return maxGeodes;
     }
 
@@ -165,4 +192,12 @@ for (let i = 0; i < blueprints.length; i++) {
 console.log(`Total quality: ${totalQuality}`);
 
 console.log("==== PART 2 ====");
-
+blueprints = lines.slice(0, 3).map(line => new BluePrint(line));
+let totalGeodes = 1;
+for (let i = 0; i < blueprints.length; i++) {
+    let g = blueprints[i].calcMaxGeodes(32);
+    console.log(`Blueprint ${blueprints[i].id} produces ${g} geodes`);
+    totalGeodes *= g;
+    delete blueprints[i];
+};
+console.log(`Total geodes: ${totalGeodes}`);
