@@ -58,8 +58,6 @@ class BluePrint {
 
     calcQuality() {
         let maxGeodes = this.mine(24, new State());
-        console.log(`cache hits: ${this.cacheHits}`);
-        console.log(`cache size: ${this.stateCache.size}`);
         return maxGeodes * this.id;
     }
 
@@ -100,8 +98,7 @@ class BluePrint {
             newState.mine();
             newState.robots[MaterialType.GEODE] += 1;
             nextStates.push(newState);
-        }
-        if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && 
+        } else if (state.materials[MaterialType.ORE] >= this.obsidianRobotCost[0] && 
             state.materials[MaterialType.CLAY] >= this.obsidianRobotCost[1]) {
             let newState = new State(state.robots.slice(), state.materials.slice());
             newState.materials[MaterialType.ORE] -= this.obsidianRobotCost[0];
@@ -109,27 +106,28 @@ class BluePrint {
             newState.mine();
             newState.robots[MaterialType.OBSIDIAN] += 1;
             nextStates.push(newState);
-        }
-        if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
-            let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.materials[MaterialType.ORE] -= this.clayRobotCost;
-            newState.mine();
-            newState.robots[MaterialType.CLAY] += 1;
-            nextStates.push(newState);
-        }
-        if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
-            let newState = new State(state.robots.slice(), state.materials.slice());
-            newState.materials[MaterialType.ORE] -= this.oreRobotCost;
-            newState.mine();
-            newState.robots[MaterialType.ORE] += 1;
-            nextStates.push(newState);
+        } else {
+            if (state.materials[MaterialType.ORE] >= this.clayRobotCost) {
+                let newState = new State(state.robots.slice(), state.materials.slice());
+                newState.materials[MaterialType.ORE] -= this.clayRobotCost;
+                newState.mine();
+                newState.robots[MaterialType.CLAY] += 1;
+                nextStates.push(newState);
+            }
+            if (state.materials[MaterialType.ORE] >= this.oreRobotCost) {
+                let newState = new State(state.robots.slice(), state.materials.slice());
+                newState.materials[MaterialType.ORE] -= this.oreRobotCost;
+                newState.mine();
+                newState.robots[MaterialType.ORE] += 1;
+                nextStates.push(newState);
+            }
         }
         
         return nextStates;
     }
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 let lines = contents.split("\n");
 let blueprints = lines.map(line => new BluePrint(line));
 
