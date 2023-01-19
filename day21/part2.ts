@@ -38,31 +38,34 @@ class Monkey {
         }
     }
 
-    shout(): number {
+    // ((4 + (2 * (h - 3))) / 4) = 150
+    shout(): string {
+        if (this.name === "humn") {
+            return "h";
+        }
         if (this.num !== undefined) {
-            return this.num;
+            return `${this.num}`;
         }
         
         let a = this.monkeyA?.shout()!;
         let b = this.monkeyB?.shout()!;
 
-        if (this.op === "+") return a + b;
-        if (this.op === "-") return a - b;
-        if (this.op === "*") return a * b;
-        if (this.op === "/") return a / b;
+        if (this.name === "root") {
+            return `${a} = ${b}`;
+        }
+        if (a.indexOf("h") >= 0 || b.indexOf("h") >= 0) {
+            return `(${a} ${this.op} ${b})`;
+        }
+
+        if (this.op === "+") return `${parseInt(a) + parseInt(b)}`;
+        if (this.op === "-") return `${parseInt(a) - parseInt(b)}`;
+        if (this.op === "*") return `${parseInt(a) * parseInt(b)}`;
+        if (this.op === "/") return `${parseInt(a) / parseInt(b)}`;
         throw Error(`Unknown op ${this.op}`);
-    }
-
-    traverseLeft() {
-        // iterate until you find a number or a monkey called "humn"
-    }
-
-    traverseRight() {
-        // iterate until you find a number or a monkey called "humn"
     }
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 let lines = contents.split("\n");
 
 console.log("==== PART 2 ====");
@@ -70,5 +73,4 @@ let monkeys = lines.map(line => new Monkey(line));
 monkeys.forEach(m => m.connect(monkeys));
 
 let root = monkeys.find(m => m.name === "root")!;
-
 console.log(root.shout());
