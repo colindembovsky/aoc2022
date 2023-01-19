@@ -52,13 +52,23 @@ class Monkey {
         if (this.op === "/") return a / b;
         throw Error(`Unknown op ${this.op}`);
     }
+
+    traverseLeft() {
+        // iterate until you find a number or a monkey called "humn"
+    }
+
+    traverseRight() {
+        // iterate until you find a number or a monkey called "humn"
+    }
 }
 
-let contents = readFile(`${ROOT_DIR}/input.txt`);
+let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
 let lines = contents.split("\n");
 
-console.log("==== PART 1 ====");
+console.log("==== PART 2 ====");
 let monkeys = lines.map(line => new Monkey(line));
 monkeys.forEach(m => m.connect(monkeys));
+
 let root = monkeys.find(m => m.name === "root")!;
+
 console.log(root.shout());
