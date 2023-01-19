@@ -37,40 +37,42 @@ function printNums() {
     console.log(n);
 }
 
-let zeroNode = undefined;
-
-for(let node of numbers) {
-    if (node.value === 0) {
-        zeroNode = node;
-        continue;
-    }
-    console.log(`move k: ${node.value}`);
-    let target = node;
-    if (node.value > 0) {
-        for (let i = 0; i < node.value % cycle; i++) {
-            target = target.right!;
+function mix() {
+    let zeroNode = undefined;
+    for(let node of numbers) {
+        if (node.value === 0) {
+            zeroNode = node;
+            continue;
         }
-    } else {
-        for (let i = 0; i < (-node.value + 1) % cycle; i++) {
-            target = target.left!;
+        let target = node;
+        if (node.value > 0) {
+            for (let i = 0; i < node.value % cycle; i++) {
+                target = target.right!;
+            }
+        } else {
+            for (let i = 0; i < (-node.value + 1) % cycle; i++) {
+                target = target.left!;
+            }
         }
+
+        if (node === target) {
+            continue;
+        }
+
+        // remove n from the list
+        node.right!.left = node.left;
+        node.left!.right = node.right;
+
+        // insert n after target
+        target.right!.left = node;
+        node.right = target.right;
+        target.right = node;
+        node.left = target;
     }
-
-    if (node === target) {
-        continue;
-    }
-
-    // remove n from the list
-    node.right!.left = node.left;
-    node.left!.right = node.right;
-
-    // insert n after target
-    target.right!.left = node;
-    node.right = target.right;
-    target.right = node;
-    node.left = target;
+    return zeroNode;
 }
 
+let zeroNode = mix();
 let coordinate = 0;
 for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 1000; j++) {
