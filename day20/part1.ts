@@ -19,26 +19,20 @@ class Node {
 console.log("==== PART 1 ====");
 
 // make an array of numbers from the lines
-let numbers = lines.map(line => new Node(parseInt(line)));
-for (let i = 0; i < numbers.length; i++) {
-    numbers[i].left  = numbers[(i - 1) % numbers.length];
-    numbers[i].right = numbers[(i + 1) % numbers.length];
-}
-numbers[0].left = numbers[numbers.length - 1];
-const cycle = numbers.length - 1;
-
-function printNums() {
-    let k = numbers[0];
-    let n = "";
+function getNumbers(key = 1) {
+    let numbers = lines.map(line => new Node(parseInt(line) * key));
     for (let i = 0; i < numbers.length; i++) {
-        n += k.value + ", ";
-        k = k.right!;
+        numbers[i].left  = numbers[(i - 1) % numbers.length];
+        numbers[i].right = numbers[(i + 1) % numbers.length];
     }
-    console.log(n);
+    numbers[0].left = numbers[numbers.length - 1];
+    return numbers;
 }
 
-function mix() {
+function mix(numbers: Node[]) {
     let zeroNode = undefined;
+    let cycle = numbers.length - 1;
+
     for(let node of numbers) {
         if (node.value === 0) {
             zeroNode = node;
@@ -72,7 +66,7 @@ function mix() {
     return zeroNode;
 }
 
-let zeroNode = mix();
+let zeroNode = mix(getNumbers());
 let coordinate = 0;
 for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 1000; j++) {
@@ -83,3 +77,16 @@ for (let i = 0; i < 3; i++) {
 console.log(coordinate);
 
 console.log("==== PART 2 ====");
+let numbers = getNumbers(811589153);
+
+for (let i = 0; i < 10; i++) {
+    zeroNode = mix(numbers);
+}
+coordinate = 0;
+for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 1000; j++) {
+        zeroNode = zeroNode!.right!;
+    }
+    coordinate += zeroNode!.value;
+}
+console.log(coordinate);
