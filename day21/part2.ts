@@ -15,6 +15,8 @@ class Monkey {
     monkeyBName: string | undefined = undefined;
     monkeyA: Monkey | undefined = undefined;
     monkeyB: Monkey | undefined = undefined;
+    static opCache: string[] = [];
+    static target: number = 0;
 
     constructor(public line: string) {
         let parts = line.split(":");
@@ -38,7 +40,28 @@ class Monkey {
         }
     }
 
-    // ((4 + (2 * (h - 3))) / 4) = 150
+    cacheOppositeOp(a: string, b: string) {
+        if (a.indexOf("h") >= 0) {
+            if (this.op === "+") Monkey.opCache.unshift(`- ${b}`);
+            if (this.op === "-") Monkey.opCache.unshift(`+ ${b}`);
+            if (this.op === "*") Monkey.opCache.unshift(`/ ${b}`);
+            if (this.op === "/") Monkey.opCache.unshift(`* ${b}`);
+        } else {
+            if (this.op === "+") Monkey.opCache.unshift(`- ${a}`);
+            if (this.op === "*") Monkey.opCache.unshift(`/ ${a}`);
+
+            if (this.op === "-") {
+                Monkey.opCache.unshift(`* -1`);
+                Monkey.opCache.unshift(`- ${a}`);
+            }
+            if (this.op === "/") {
+                // never happens - may need to be reversed
+                Monkey.opCache.unshift(`* ${a}`);
+                Monkey.opCache.unshift(`inv`);
+            }
+        }
+    }
+
     shout(): string {
         if (this.name === "humn") {
             return "h";
@@ -51,9 +74,13 @@ class Monkey {
         let b = this.monkeyB?.shout()!;
 
         if (this.name === "root") {
+            if (isNaN(parseInt(a))) Monkey.target = parseInt(b);
+            if (isNaN(parseInt(b))) Monkey.target = parseInt(a);
             return `${a} = ${b}`;
         }
+        
         if (a.indexOf("h") >= 0 || b.indexOf("h") >= 0) {
+            this.cacheOppositeOp(a, b);
             return `(${a} ${this.op} ${b})`;
         }
 
@@ -74,3 +101,19 @@ monkeys.forEach(m => m.connect(monkeys));
 
 let root = monkeys.find(m => m.name === "root")!;
 console.log(root.shout());
+console.log(`Target: ${Monkey.target} with ${Monkey.opCache.length} ops`);
+let num = Monkey.target;
+for (let op of Monkey.opCache) {
+    let parts = op.split(" ");
+    let opp = parts[0];
+    if (opp === "inv") {
+        num = 1 / num;
+    } else {
+        let val = parseInt(parts[1]);
+        if (opp === "+") num += val;
+        if (opp === "-") num -= val;
+        if (opp === "*") num *= val;
+        if (opp === "/") num /= val;
+    }
+}
+console.log(`Result: ${num}`);
