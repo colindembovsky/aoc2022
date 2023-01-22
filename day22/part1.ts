@@ -7,7 +7,7 @@ function readFile(fileName: string): string {
     return fs.readFileSync(fileName, "utf8");
 }
 
-let contents = readFile(`${ROOT_DIR}/easy-input.txt`);
+let contents = readFile(`${ROOT_DIR}/input.txt`);
 let mapLines = contents.split("\n");
 let instructions = mapLines.pop()!;
 mapLines.pop();  // remove the blank line
@@ -94,9 +94,9 @@ function moveForward(count: number) {
     if (curDir === "d") {
         for(let m = 0; m < count; m++) {
             // deal with wrap around
-            if (curRow === mapLines.length - 1 || mapLines[curRow + 1][curCol] === " " || mapLines[curRow + 1].length < curCol - 1) {
+            if (curRow === mapLines.length - 1 || mapLines[curRow + 1][curCol] === " " || mapLines[curRow + 1].length < curCol) {
                 let tmpCurRow = 0;
-                while(mapLines[tmpCurRow].length < curCol - 1 || mapLines[tmpCurRow + 1].length < curCol - 1 || mapLines[tmpCurRow + 1][curCol] === " ") {
+                while(mapLines[tmpCurRow].length < curCol - 1 && (mapLines[tmpCurRow].length < curCol || mapLines[tmpCurRow][curCol] === " ")) {
                     tmpCurRow++;
                 }
                 // wrap to wall
@@ -120,9 +120,9 @@ function moveForward(count: number) {
     if (curDir === "u") {
         for(let m = 0; m < count; m++) {
             // deal with wrap around
-            if (curRow === 0 || mapLines[curRow - 1][curCol] === " " || mapLines[curRow - 1].length < curCol - 1) {
+            if (curRow === 0 || mapLines[curRow - 1].length < curCol || mapLines[curRow - 1][curCol] === " ") {
                 let tmpCurRow = mapLines.length - 1;
-                while(mapLines[tmpCurRow].length > 0 || mapLines[curRow - 1].length < curCol - 1 || mapLines[tmpCurRow - 1][curCol] === " ") {
+                while(mapLines[tmpCurRow].length > 0 && (mapLines[tmpCurRow].length < curCol || mapLines[tmpCurRow][curCol] === " ")) {
                     tmpCurRow--;
                 }
                 // wrap to wall
@@ -150,10 +150,14 @@ while(mapLines[curRow][curCol] === " ") {
 }
 
 while(curInstructionIndex < instructions.length) {
+    console.log(`${curRow}, ${curCol} (${curDir})`);
+
     let instructionChar = instructions[curInstructionIndex];
     if (instructionChar === "L") {
+        console.log("turning left");
         turnLeft();
     } else if (instructionChar === "R") {
+        console.log("turning right");
         turnRight();
     } else {
         let countString = instructionChar;
@@ -177,3 +181,4 @@ if (curDir === "u") facing = 3;
 
 let password = row * 1000 + (col * 4) + facing;
 console.log(password);
+// 14228 < x < 162116
