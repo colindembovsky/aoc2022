@@ -7,10 +7,15 @@ function readFile(fileName: string): string {
     return fs.readFileSync(fileName, "utf8");
 }
 
+function writeFile(fileName: string, contents: string) {
+    fs.writeFileSync(fileName, contents, "utf8");
+}
+
 let contents = readFile(`${ROOT_DIR}/input.txt`);
 let mapLines = contents.split("\n");
 let instructions = mapLines.pop()!;
 mapLines.pop();  // remove the blank line
+let traceMap = mapLines.slice();
 
 let curRow = 0;
 let curCol = 0;
@@ -52,9 +57,11 @@ function moveForward(count: number) {
                 }
                 // wrap to wall
                 if (mapLines[curRow][tmpCurCol] === "#") {
+                    drawPath();
                     return;
                 } else {
                     curCol = tmpCurCol;
+                    drawPath();
                     continue;
                 }
             }
@@ -64,6 +71,7 @@ function moveForward(count: number) {
             } else if (mapLines[curRow][curCol + 1] === ".") {
                 curCol++;
             }
+            drawPath();
         }
         return;
     }
@@ -75,9 +83,11 @@ function moveForward(count: number) {
                 let tmpCurCol = mapLines[curRow].length - 1;
                 // wrap to wall
                 if (mapLines[curRow][tmpCurCol] === "#") {
+                    drawPath();
                     return;
                 } else {
                     curCol = tmpCurCol;
+                    drawPath();
                     continue;
                 }
             }
@@ -87,6 +97,7 @@ function moveForward(count: number) {
             } else if (mapLines[curRow][curCol - 1] === ".") {
                 curCol--;
             }
+            drawPath();
         }
         return;
     }
@@ -94,16 +105,18 @@ function moveForward(count: number) {
     if (curDir === "d") {
         for(let m = 0; m < count; m++) {
             // deal with wrap around
-            if (curRow === mapLines.length - 1 || mapLines[curRow + 1][curCol] === " " || mapLines[curRow + 1].length < curCol) {
+            if (curRow === mapLines.length - 1 || mapLines[curRow + 1].length < curCol || mapLines[curRow + 1][curCol] === " ") {
                 let tmpCurRow = 0;
-                while(mapLines[tmpCurRow].length < curCol - 1 && (mapLines[tmpCurRow].length < curCol || mapLines[tmpCurRow][curCol] === " ")) {
+                while(mapLines[tmpCurRow].length < curCol - 1 || mapLines[tmpCurRow][curCol] === " ") {
                     tmpCurRow++;
                 }
                 // wrap to wall
                 if (mapLines[tmpCurRow][curCol] === "#") {
+                    drawPath();
                     return;
                 } else {
                     curRow = tmpCurRow;
+                    drawPath();
                     continue;
                 }
             }
@@ -113,6 +126,7 @@ function moveForward(count: number) {
             } else if (mapLines[curRow + 1][curCol] === ".") {
                 curRow++;
             }
+            drawPath();
         }
         return;
     }
@@ -122,14 +136,16 @@ function moveForward(count: number) {
             // deal with wrap around
             if (curRow === 0 || mapLines[curRow - 1].length < curCol || mapLines[curRow - 1][curCol] === " ") {
                 let tmpCurRow = mapLines.length - 1;
-                while(mapLines[tmpCurRow].length > 0 && (mapLines[tmpCurRow].length < curCol || mapLines[tmpCurRow][curCol] === " ")) {
+                while(mapLines[tmpCurRow].length < curCol || mapLines[tmpCurRow][curCol] === " ") {
                     tmpCurRow--;
                 }
                 // wrap to wall
                 if (mapLines[tmpCurRow][curCol] === "#") {
+                    drawPath();
                     return;
                 } else {
                     curRow = tmpCurRow;
+                    drawPath();
                     continue;
                 }
             }
@@ -139,6 +155,7 @@ function moveForward(count: number) {
             } else if (mapLines[curRow - 1][curCol] === ".") {
                 curRow--;
             }
+            drawPath();
         }
         return;
     }
@@ -149,15 +166,26 @@ while(mapLines[curRow][curCol] === " ") {
     curCol++;
 }
 
-while(curInstructionIndex < instructions.length) {
+function drawPath() {
+    let dir = ">";
+    if (curDir === "l") dir = "<";
+    if (curDir === "u") dir = "^";
+    if (curDir === "d") dir = "v";
+    traceMap[curRow] = traceMap[curRow].substring(0, curCol) + dir + traceMap[curRow].substring(curCol + 1);
+}
+
+while(curInstructionIndex < 34) {
     console.log(`${curRow}, ${curCol} (${curDir})`);
+    drawPath();
 
     let instructionChar = instructions[curInstructionIndex];
     if (instructionChar === "L") {
         console.log("turning left");
+        drawPath();
         turnLeft();
     } else if (instructionChar === "R") {
         console.log("turning right");
+        drawPath();
         turnRight();
     } else {
         let countString = instructionChar;
@@ -181,4 +209,6 @@ if (curDir === "u") facing = 3;
 
 let password = row * 1000 + (col * 4) + facing;
 console.log(password);
+writeFile(`${ROOT_DIR}/trace.txt`, traceMap.join("\n"));
+console.log("==== PART 2 ====");
 // 14228 < x < 162116
